@@ -26,7 +26,7 @@
 
 #include "input_tdm.h"
 #include "output_tdm.h"
-#if defined(KINETISK)
+#if defined(__IMXRT1062__)
 
 DMAMEM static uint32_t tdm_rx_buffer[AUDIO_BLOCK_SAMPLES*MAX_CHANNELS];
 audio_block_t * AudioInputTDM::block_incoming[MAX_CHANNELS] = {
@@ -45,8 +45,9 @@ void AudioInputTDM::begin(void)
 	// TODO: should we set & clear the I2S_RCSR_SR bit here?
 	AudioOutputTDM::config_tdm();
 
-	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
-	dma.TCD->SADDR = &I2S0_RDR0;
+	CORE_PIN8_CONFIG  = 3;  //RX_DATA0
+	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
+	dma.TCD->SADDR = &I2S1_RDR0;
 	dma.TCD->SOFF = 0;
 	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
 	dma.TCD->NBYTES_MLNO = 4;
@@ -57,12 +58,11 @@ void AudioInputTDM::begin(void)
 	dma.TCD->DLASTSGA = -sizeof(tdm_rx_buffer);
 	dma.TCD->BITER_ELINKNO = sizeof(tdm_rx_buffer) / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
 	update_responsibility = update_setup();
 	dma.enable();
 
-	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
-	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
+	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
 	dma.attachInterrupt(isr);
 }
 
@@ -101,6 +101,9 @@ void AudioInputTDM::isr(void)
 		src = &tdm_rx_buffer[0];
 	}
 	if (block_incoming[0] != NULL) {
+		// #if IMXRT_CACHE_ENABLED >=1
+		// arm_dcache_delete((void*)src, sizeof(tdm_rx_buffer) / 2);
+		// #endif
 		for (i=0; i < MAX_CHANNELS; i += 2) {
 			uint32_t *dest1 = (uint32_t *)(block_incoming[i]->data);
 			uint32_t *dest2 = (uint32_t *)(block_incoming[i+1]->data);
@@ -119,7 +122,7 @@ void AudioInputTDM::update(void)
 	audio_block_t *new_block[MAX_CHANNELS];
 	audio_block_t *out_block[MAX_CHANNELS];
 
-	// allocate 16 new blocks.  If any fails, allocate none
+	// allocate MAX_CHANNELS new blocks. If any fails, allocate none
 	for (i=0; i < MAX_CHANNELS; i++) {
 		new_block[i] = allocate();
 		if (new_block[i] == NULL) {
@@ -135,7 +138,7 @@ void AudioInputTDM::update(void)
 	memcpy(block_incoming, new_block, sizeof(block_incoming));
 	__enable_irq();
 	if (out_block[0] != NULL) {
-		// if we got 1 block, all 16 are filled
+		// if we got 1 block, all MAX_CHANNELS are filled
 		for (i=0; i < MAX_CHANNELS; i++) {
 			transmit(out_block[i], i);
 			release(out_block[i]);
@@ -151,8 +154,9 @@ void AudioInputTDMslave::begin(void)
 	// TODO: should we set & clear the I2S_RCSR_SR bit here?
 	AudioOutputTDMslave::config_tdm();
 
-	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
-	dma.TCD->SADDR = &I2S0_RDR0;
+	CORE_PIN8_CONFIG  = 3;  //RX_DATA0
+	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
+	dma.TCD->SADDR = &I2S1_RDR0;
 	dma.TCD->SOFF = 0;
 	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
 	dma.TCD->NBYTES_MLNO = 4;
@@ -163,13 +167,12 @@ void AudioInputTDMslave::begin(void)
 	dma.TCD->DLASTSGA = -sizeof(tdm_rx_buffer);
 	dma.TCD->BITER_ELINKNO = sizeof(tdm_rx_buffer) / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
 	update_responsibility = update_setup();
 	dma.enable();
 
-	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
-	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
-	dma.attachInterrupt(isr);
+	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
+	dma.attachInterrupt(isr);	
 }
 
-#endif // KINETISK
+#endif
