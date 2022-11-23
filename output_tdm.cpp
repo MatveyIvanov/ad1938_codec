@@ -29,7 +29,7 @@
 
 
 
-#if defined(__IMXRT1062__) || 1
+#if defined(__IMXRT1062__)
 
 audio_block_t * AudioOutputTDM::block_input[MAX_CHANNELS] = {
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
