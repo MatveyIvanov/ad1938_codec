@@ -33,7 +33,7 @@
 
 //#define MAX_CHANNELS  16
 #define MAX_CHANNELS  32
-#define MAX_CHANNELS  32
+
 class AudioOutputTDM : public AudioStream
 {
 public:
