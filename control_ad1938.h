@@ -30,9 +30,9 @@
 
 /*SPI */
 #define AD1938_SPI_CLK_FREQ      1000000
-#define AD1938_SPI_CHIP_SEL      7  /*teensy 3.6 gpio*/
-#define AD1938_SPI_SCK           14 /*teensy 3.6 gpio*/
-#define AD1938_RESET             17 /*teensy 3.6 gpio*/
+#define AD1938_SPI_CHIP_SEL      11  /*teensy 4.0 gpio*/
+#define AD1938_SPI_SCK           13 /*teensy 4.0 gpio*/
+#define AD1938_RESET             18 /*teensy 4.0 gpio*/
 
 /*sampling rate*/
 typedef enum 
@@ -105,9 +105,6 @@ protected:
 	unsigned char spi_read_reg(unsigned char reg);
 	bool isPllLocked();
 	bool dacVolume(int dac_num,int volume);
-	
 };
-
-
 
 #endif // !_CONTROL_AD1938_H_
