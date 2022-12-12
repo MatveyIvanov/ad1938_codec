@@ -25,10 +25,10 @@ AD1938 (slave)->AD1938(master)->Teensy(slave)
 */
 
 int clatch_slave =6;//ad1938 slave spi latch
-int clatch =7;       //ad1938 master spi latch
+int clatch =10;       //ad1938 master spi latch
 int cout=12;         //spi miso
 int cin =11;         //spi  mosi
-int cclk =14;        //spi clock
+int cclk =13;        //spi clock
 int reset_pin_slave =16; //ad1938 slave reset pin
 int reset_pin =17;        //ad1938 master reset pin
 
@@ -99,14 +99,14 @@ void setup() {
  #endif
 
  
- #if 1
+ #if 1 && 0
   ad1938slave.spiInit( clatch_slave, reset_pin_slave, cout, cin, cclk);
   delay(200);
   //ad1938slave.config(FS_48000,BITS_24,I2S_TDM_8CH,AD1938_I2S_SLAVE);
   ad1938slave.config(FS_48000,BITS_16,I2S_TDM_16CH,AD1938_I2S_SLAVE);
   ad1938slave.volume(1);
- // ad1938slave.enable();
-  //ad1938master.readAllreg();
+  ad1938slave.enable();
+  ad1938slave.readAllreg();
 delay(200);
  
 #endif 
@@ -119,9 +119,9 @@ delay(200);
   ad1938master.config(FS_48000,BITS_16,I2S_TDM_16CH,AD1938_I2S_MASTER);
   ad1938master.volume(1);
   ad1938master.enable();
-  ad1938slave.enable();
- // delay(2000);
- //ad1938master.readAllreg();
+  ad1938master.enable();
+  delay(2000);
+  ad1938master.readAllreg();
 
  #endif
   AudioMemory(256); 
@@ -129,11 +129,27 @@ delay(200);
   
  AudioProcessorUsageMaxReset();
  AudioMemoryUsageMaxReset();
+
+ pinMode(16, INPUT);
+ pinMode(15, OUTPUT);
 }
 
-
+int write = 0;
+int read;
 
 void loop() {
+  write++;
+  write %= 25;
+  analogWrite(15, write);
+  Serial.println();
+  Serial.print("analog write is: ");
+  Serial.println(write);
+  delay(250);
+  
+  read = analogRead(16);
+  Serial.print("analog read is: ");
+  Serial.println(read);
+  delay(250);
   // put your main code here, to run repeatedly:
   Serial.print("\n");
   Serial.print("CPU Peak CPU=");
@@ -149,5 +165,3 @@ void loop() {
   Serial.print(i2s_out.processorUsageMax());
   delay(1000);
 }
-
-

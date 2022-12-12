@@ -30,9 +30,9 @@
 
 /*SPI */
 #define AD1938_SPI_CLK_FREQ      1000000
-#define AD1938_SPI_CHIP_SEL      11  /*teensy 4.0 gpio*/
+#define AD1938_SPI_CHIP_SEL      10  /*teensy 4.0 gpio*/
 #define AD1938_SPI_SCK           13 /*teensy 4.0 gpio*/
-#define AD1938_RESET             18 /*teensy 4.0 gpio*/
+#define AD1938_RESET             17 /*teensy 4.0 gpio*/
 
 /*sampling rate*/
 typedef enum 

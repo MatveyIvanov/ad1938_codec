@@ -75,13 +75,13 @@ Address Register
 Bit Value Function Description
 0 0 Normal operation PLL power-down
 1 Power-down
-2:1 00 INPUT 256 (× 44.1 kHz or 48 kHz) MCLKI/XI pin functionality (PLL active), master clock rate setting
-    01 INPUT 384 (× 44.1 kHz or 48 kHz)
-    10 INPUT 512 (× 44.1 kHz or 48 kHz)
-    11 INPUT 768 (× 44.1 kHz or 48 kHz)
+2:1 00 INPUT 256 (ï¿½ 44.1 kHz or 48 kHz) MCLKI/XI pin functionality (PLL active), master clock rate setting
+    01 INPUT 384 (ï¿½ 44.1 kHz or 48 kHz)
+    10 INPUT 512 (ï¿½ 44.1 kHz or 48 kHz)
+    11 INPUT 768 (ï¿½ 44.1 kHz or 48 kHz)
 4:3 00 XTAL oscillator enabled MCLKO/XO pin, master clock rate setting
-    01 256 × fS VCO output
-    10 512 × fS VCO output
+    01 256 ï¿½ fS VCO output
+    10 512 ï¿½ fS VCO output
     11 Off
 6:5 00 MCLKI/XI PLL input
     01 DLRCLK
@@ -490,8 +490,8 @@ bool AudioControlAD1938::spiInit(int clatch,int reset,int cout,int cin,int cclk)
 	 pinMode(ad1938_reset, OUTPUT);
 	 
 	 /*SPI clock pin set*/
-	// SPI.setMOSI(cin); 
-	//SPI.setMISO(cout);  
+	SPI.setMOSI(cin); 
+	SPI.setMISO(cout);  
 	SPI.setSCK(cclk);/*SPI clock alternate pin 14*/
 	SPI.begin();
 	 /*reset codec*/
@@ -499,8 +499,6 @@ bool AudioControlAD1938::spiInit(int clatch,int reset,int cout,int cin,int cclk)
 	delay(200);
 	digitalWrite(ad1938_reset, HIGH);
 	delay(400);//wait for 300ms to load the code
-	
-	
 	
 	return true;
 	 
@@ -812,7 +810,6 @@ bool AudioControlAD1938::config(Te_samplingRate sampleRate,
 bool AudioControlAD1938::isPllLocked(void)
 {
 	return ((spi_read_reg(AD1938_PLL_CLK_CTRL1)>>3)&0x1);
-
 }
 /*------------------------------------------------------------------------------*/
 /*        enable(void)                                                            */
@@ -826,7 +823,7 @@ bool AudioControlAD1938::enable(void)
 	}
 	else
 	{
-		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_MCLK | MCLK_OUT_XTAL |PLL_PWR_UP));
+		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_MCLK | MCLK_OUT_XTAL | PLL_PWR_UP));
 	}
 	
 	spi_write_reg(AD1938_DAC_CHNL_MUTE, 0);/*un mute*/
@@ -878,7 +875,6 @@ bool AudioControlAD1938::dacVolume(int dac_num, int volume)
 			spi_write_reg(AD1938_DAC_L4_VOL, volume);
 			spi_write_reg(AD1938_DAC_R4_VOL, volume);
 			break;
-
 		}
 
 	
