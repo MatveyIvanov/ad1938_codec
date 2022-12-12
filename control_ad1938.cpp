@@ -133,7 +133,7 @@ Bit Value Function Description
 #define ENA_VREF            (0x00)
 
 #define ADC_CLK_PLL         (0x00)
-#define ADC_CLK_MCLK        (0x20)
+#define ADC_CLK_MCLK        (0x02)
 
 #define DAC_CLK_PLL         (0x00)
 #define DAC_CLK_MCLK        (0x01)
@@ -490,8 +490,8 @@ bool AudioControlAD1938::spiInit(int clatch,int reset,int cout,int cin,int cclk)
 	 pinMode(ad1938_reset, OUTPUT);
 	 
 	 /*SPI clock pin set*/
-	SPI.setMOSI(cin); 
-	SPI.setMISO(cout);  
+	// SPI.setMOSI(cin); 
+	//SPI.setMISO(cout);  
 	SPI.setSCK(cclk);/*SPI clock alternate pin 14*/
 	SPI.begin();
 	 /*reset codec*/
@@ -499,6 +499,8 @@ bool AudioControlAD1938::spiInit(int clatch,int reset,int cout,int cin,int cclk)
 	delay(200);
 	digitalWrite(ad1938_reset, HIGH);
 	delay(400);//wait for 300ms to load the code
+	
+	
 	
 	return true;
 	 
@@ -693,59 +695,57 @@ bool AudioControlAD1938::config(Te_samplingRate sampleRate,
 	
 	if(mode == AD1938_I2S_SLAVE)
 	{
-	
-	//0 PLL and Clock Control 0
-	spi_write_reg(AD1938_PLL_CLK_CTRL0, (DIS_ADC_DAC | INPUT512 | PLL_IN_ALRCLK | MCLK_OUT_OFF |PLL_PWR_DWN));
+		//0 PLL and Clock Control 0
+		spi_write_reg(AD1938_PLL_CLK_CTRL0, (DIS_ADC_DAC | INPUT512 | PLL_IN_ALRCLK | MCLK_OUT_OFF |PLL_PWR_DWN));
+		
+		//1 PLL and Clock Control 1
+		spi_write_reg(AD1938_PLL_CLK_CTRL1, (DAC_CLK_PLL | ADC_CLK_PLL | ENA_VREF));
 
-	
-    //1 PLL and Clock Control 1
-	spi_write_reg(AD1938_PLL_CLK_CTRL1, (DAC_CLK_PLL | ADC_CLK_PLL | ENA_VREF));
+		//2 DAC Control 0
+		spi_write_reg(AD1938_DAC_CTRL0, (dac_mode | DAC_BCLK_DLY_1 | dac_fs | DAC_PWR_UP));
 
-	//2 DAC Control 0
-	spi_write_reg(AD1938_DAC_CTRL0, (dac_mode | DAC_BCLK_DLY_1 | dac_fs | DAC_PWR_UP));
+		//3 DAC Control 1
+		spi_write_reg(AD1938_DAC_CTRL1, ( DAC_BCLK_SRC_INTERNAL| DAC_BCLK_MASTER | DAC_LRCLK_MASTER  |DAC_LRCLK_POL_NORM | dac_channels | DAC_LATCH_MID));
+		//4 DAC Control 2
+		spi_write_reg(AD1938_DAC_CTRL2, dac_wl);
 
-    //3 DAC Control 1
-	spi_write_reg(AD1938_DAC_CTRL1, ( DAC_BCLK_SRC_PIN|DAC_BCLK_SLAVE| DAC_LRCLK_SLAVE  |DAC_LRCLK_POL_NORM | dac_channels | DAC_LATCH_MID));
-	//4 DAC Control 2
-	spi_write_reg(AD1938_DAC_CTRL2, dac_wl);
+		//5 DAC individual channel mutes
+		spi_write_reg(AD1938_DAC_CHNL_MUTE, 0x00);/*mute*/
 
-	//5 DAC individual channel mutes
-	spi_write_reg(AD1938_DAC_CHNL_MUTE, 0x00);/*mute*/
+		//6 DAC L1 volume control
+		spi_write_reg(AD1938_DAC_L1_VOL, DACVOL_MAX);
 
-	//6 DAC L1 volume control
-	spi_write_reg(AD1938_DAC_L1_VOL, DACVOL_MAX);
+		//7 DAC R1 volume control
+		spi_write_reg(AD1938_DAC_R1_VOL, DACVOL_MAX);
 
-	//7 DAC R1 volume control
-	spi_write_reg(AD1938_DAC_R1_VOL, DACVOL_MAX);
+		//8 DAC L2 volume control
+		spi_write_reg(AD1938_DAC_L2_VOL, DACVOL_MAX);
 
-	//8 DAC L2 volume control
-	spi_write_reg(AD1938_DAC_L2_VOL, DACVOL_MAX);
+		//9 DAC R2 volume control
+		spi_write_reg(AD1938_DAC_R2_VOL, DACVOL_MAX);
 
-	//9 DAC R2 volume control
-	spi_write_reg(AD1938_DAC_R2_VOL, DACVOL_MAX);
+		//10 DAC L3 volume control
+		spi_write_reg(AD1938_DAC_L3_VOL, DACVOL_MAX);
 
-	//10 DAC L3 volume control
-	spi_write_reg(AD1938_DAC_L3_VOL, DACVOL_MAX);
+		//11 DAC R3 volume control
+		spi_write_reg(AD1938_DAC_R3_VOL, DACVOL_MAX);
 
-	//11 DAC R3 volume control
-	spi_write_reg(AD1938_DAC_R3_VOL, DACVOL_MAX);
+		//12 DAC L4 volume control
+		spi_write_reg(AD1938_DAC_L4_VOL, DACVOL_MAX);
 
-	//12 DAC L4 volume control
-	spi_write_reg(AD1938_DAC_L4_VOL, DACVOL_MAX);
-
-	//13 DAC R4 volume control
-	spi_write_reg(AD1938_DAC_R4_VOL, DACVOL_MAX);
+		//13 DAC R4 volume control
+		spi_write_reg(AD1938_DAC_R4_VOL, DACVOL_MAX);
 
 
-	//14 ADC Control 0
-	spi_write_reg(AD1938_ADC_CTRL0, adc_fs);
+		//14 ADC Control 0
+		spi_write_reg(AD1938_ADC_CTRL0, adc_fs);
 
-	//15 ADC Control 1
-	spi_write_reg(AD1938_ADC_CTRL1, (ADC_LATCH_MID | adc_mode | ADC_BCLK_DLY_0 | adc_wl));
+		//15 ADC Control 1
+		spi_write_reg(AD1938_ADC_CTRL1, (ADC_LATCH_MID | adc_mode | ADC_BCLK_DLY_0 | adc_wl));
 
-	//16 ADC Control 2
-	spi_write_reg(AD1938_ADC_CTRL2, ( ADC_BCLK_SRC_PIN|ADC_BCLK_SLAVE | adc_channels | ADC_LRCLK_SLAVE  | ADC_LRCLK_FMT_50_50|ADC_LRCLK_POL_NORM|ADC_BCLK_POL_NORM));	
-	
+		//16 ADC Control 2
+		spi_write_reg(AD1938_ADC_CTRL2, (ADC_BCLK_SRC_INTERNAL | ADC_BCLK_MASTER | adc_channels | ADC_LRCLK_MASTER | ADC_LRCLK_FMT_50_50 | ADC_LRCLK_POL_NORM | ADC_BCLK_POL_NORM));	
+		
 	}
 	else
 	{
@@ -759,7 +759,7 @@ bool AudioControlAD1938::config(Te_samplingRate sampleRate,
 		spi_write_reg(AD1938_DAC_CTRL0, (dac_mode | DAC_BCLK_DLY_1 | dac_fs | DAC_PWR_UP));
 		
 		 //3 DAC Control 1
-		spi_write_reg(AD1938_DAC_CTRL1, ( DAC_BCLK_SRC_INTERNAL|DAC_BCLK_SLAVE| DAC_LRCLK_SLAVE  |DAC_LRCLK_POL_NORM | dac_channels | DAC_LATCH_MID));
+		spi_write_reg(AD1938_DAC_CTRL1, ( DAC_BCLK_SRC_INTERNAL |DAC_BCLK_SLAVE | DAC_BCLK_POL_NORM | DAC_LRCLK_SLAVE | DAC_LRCLK_POL_NORM | dac_channels | DAC_LATCH_MID));
 		
 		//4 DAC Control 2
 		spi_write_reg(AD1938_DAC_CTRL2, dac_wl);
@@ -798,7 +798,7 @@ bool AudioControlAD1938::config(Te_samplingRate sampleRate,
 		spi_write_reg(AD1938_ADC_CTRL1, (ADC_LATCH_MID | adc_mode | ADC_BCLK_DLY_1 | adc_wl));
 
 		//16 ADC Control 2
-		spi_write_reg(AD1938_ADC_CTRL2, ( ADC_BCLK_SRC_INTERNAL|ADC_BCLK_MASTER | adc_channels | ADC_LRCLK_MASTER  | ADC_LRCLK_FMT_50_50|ADC_LRCLK_POL_NORM|ADC_BCLK_POL_NORM));
+		spi_write_reg(AD1938_ADC_CTRL2, ( ADC_BCLK_SRC_PIN | ADC_BCLK_SLAVE | adc_channels | ADC_LRCLK_SLAVE  | ADC_LRCLK_FMT_50_50 | ADC_LRCLK_POL_NORM | ADC_BCLK_POL_NORM));
 	}
 	return true;
 
@@ -810,6 +810,7 @@ bool AudioControlAD1938::config(Te_samplingRate sampleRate,
 bool AudioControlAD1938::isPllLocked(void)
 {
 	return ((spi_read_reg(AD1938_PLL_CLK_CTRL1)>>3)&0x1);
+
 }
 /*------------------------------------------------------------------------------*/
 /*        enable(void)                                                            */
@@ -819,11 +820,11 @@ bool AudioControlAD1938::enable(void)
 
 	if(i2sMode == AD1938_I2S_SLAVE)
 	{
-		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_DLRCLK | MCLK_OUT_OFF | PLL_PWR_UP));	
+		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_DLRCLK | MCLK_OUT_XTAL | PLL_PWR_UP));	
 	}
 	else
 	{
-		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_MCLK | MCLK_OUT_XTAL | PLL_PWR_UP));
+		spi_write_reg(AD1938_PLL_CLK_CTRL0, (ENA_ADC_DAC | INPUT512 | PLL_IN_MCLK | MCLK_OUT_OFF | PLL_PWR_UP));
 	}
 	
 	spi_write_reg(AD1938_DAC_CHNL_MUTE, 0);/*un mute*/
@@ -875,6 +876,7 @@ bool AudioControlAD1938::dacVolume(int dac_num, int volume)
 			spi_write_reg(AD1938_DAC_L4_VOL, volume);
 			spi_write_reg(AD1938_DAC_R4_VOL, volume);
 			break;
+
 		}
 
 	
